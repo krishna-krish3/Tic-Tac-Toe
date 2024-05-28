@@ -1,44 +1,32 @@
-import Square from "./Square";
 import { useState } from "react";
-import calculateWinner from "./CalculateWinner";
+import Board from "./Board";
+import Moves from "./Moves";
 
-export default function Board() {
-  const [xIsNext, setXIsNext] = useState(true);
-  const [squares, setSquaresValue] = useState(Array(9).fill(null));
+export default function Game() {
+  const [history, setHistory] = useState([Array(9).fill(null)]);
+  const [currentMove, setCurrentMove] = useState(0);
+  const xIsNext = currentMove % 2 === 0;
+  const currentSquares = history[currentMove];
 
-  function handleUserClick(i) {
-    if (calculateWinner(squares) || squares[i]) {
-      return;
-    }
-
-    const nextSquares = squares.slice();
-    nextSquares[i] = xIsNext ? "X" : "O";
-    setSquaresValue(nextSquares);
+  function handlePlay(nextSquares) {
+    const nextHistory = [...history.slice(0, currentMove + 1), nextSquares];
+    setHistory(nextHistory);
+    setCurrentMove(nextHistory.length - 1);
     setXIsNext(!xIsNext);
   }
 
-  const winner = calculateWinner(squares);
-  const status = winner
-    ? "winner: " + winner
-    : "Next player: " + (xIsNext ? "X" : "O");
+  function jumpTo(nextMove) {
+    setCurrentMove(nextMove);
+    setXIsNext(nextMove % 2 === 0);
+  }
 
   return (
-    <div className="board-container">
-      <div className="status">{status}</div>
-      <div className="board-row">
-        <Square value={squares[0]} onSquareClick={() => handleUserClick(0)} />
-        <Square value={squares[1]} onSquareClick={() => handleUserClick(1)} />
-        <Square value={squares[2]} onSquareClick={() => handleUserClick(2)} />
+    <div className="game">
+      <div className="game-board">
+        <Board xIsNext={xIsNext} squares={currentSquares} onPlay={handlePlay} />
       </div>
-      <div className="board-row">
-        <Square value={squares[3]} onSquareClick={() => handleUserClick(3)} />
-        <Square value={squares[4]} onSquareClick={() => handleUserClick(4)} />
-        <Square value={squares[5]} onSquareClick={() => handleUserClick(5)} />
-      </div>
-      <div className="board-row">
-        <Square value={squares[6]} onSquareClick={() => handleUserClick(6)} />
-        <Square value={squares[7]} onSquareClick={() => handleUserClick(7)} />
-        <Square value={squares[8]} onSquareClick={() => handleUserClick(8)} />
+      <div className="game-info">
+        <ol>{<Moves history={history} onJumpClick={jumpTo} />}</ol>
       </div>
     </div>
   );
